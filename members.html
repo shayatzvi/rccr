@@ -1,5 +1,49 @@
-<script type="text/javascript" src="https://www.authpro.com/auth/krckainfo/?action=pp&limit_members=shaya">
-</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected Page with Kinde</title>
+    <script src="https://cdn.kinde.com/kinde-auth.js"></script>
+</head>
+<body>
 
-<a href="https://www.authpro.com/auth/krckainfo/?action=logout">Logout</a>
-hi
+    <h1>Welcome to My Website</h1>
+    
+    <button id="login-btn">Login</button>
+    <button id="logout-btn" style="display: none;">Logout</button>
+
+    <div id="protected-content" style="display: none;">
+        <h2>Protected Content</h2>
+        <p>Only logged-in users can see this.</p>
+    </div>
+
+    <script>
+        const kinde = new KindeAuth({
+            domain: "https://rccr.kinde.com",
+            clientId: "5c8c49585aa1492dbe5d511991f42679",
+            redirectUri: "rebchardle.org/members.html",
+        });
+
+        async function checkAuth() {
+            const isAuthenticated = await kinde.isAuthenticated();
+            if (isAuthenticated) {
+                document.getElementById("protected-content").style.display = "block";
+                document.getElementById("login-btn").style.display = "none";
+                document.getElementById("logout-btn").style.display = "inline";
+            }
+        }
+
+        document.getElementById("login-btn").addEventListener("click", () => {
+            kinde.login();
+        });
+
+        document.getElementById("logout-btn").addEventListener("click", () => {
+            kinde.logout();
+        });
+
+        checkAuth();
+    </script>
+
+</body>
+</html>
