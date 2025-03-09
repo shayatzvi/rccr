@@ -3,48 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protected Page with Kinde</title>
-    <script src="https://cdn.kinde.com/kinde-auth.js"></script>
-    <script type="text/javascript" src="https://www.authpro.com/auth/krckainfo/?action=pp">
-</script>
+    <title>Auth0 CDN Authentication</title>
+    <script src="https://cdn.auth0.com/js/auth0/9.19/auth0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #profile { margin-top: 20px; display: none; }
+    </style>
 </head>
 <body>
 
-    <h1>Welcome to My Website</h1>
-    
-    <button id="login-btn">Login</button>
-    <button id="logout-btn" style="display: none;">Logout</button>
+    <h2>Auth0 Login Example</h2>
+    <button onclick="login()">Login with Auth0</button>
+    <button onclick="logout()" style="display: none;" id="logoutBtn">Logout</button>
 
-    <div id="protected-content" style="display: none;">
-        <h2>Protected Content</h2>
-        <p>Only logged-in users can see this.</p>
+    <div id="profile">
+        <h3>Welcome, <span id="userName"></span></h3>
+        <img id="userPicture" src="" alt="User Picture" width="100">
     </div>
 
     <script>
-        const kinde = new KindeAuth({
-            domain: "https://rccr.kinde.com",
-            clientId: "5c8c49585aa1492dbe5d511991f42679",
-            redirectUri: "rebchardle.org/members.html",
+        const auth0Client = new auth0.WebAuth({
+            domain: "dev-jk6cbtdmjmw7ieys.us.auth0.com",
+            clientID: "evmhsNqsdWLquRyRBHJYYFozBgtD0fyg",
+            redirectUri: "rebchardle.org",
+            responseType: "token id_token",
+            scope: "openid profile email"
         });
 
-        async function checkAuth() {
-            const isAuthenticated = await kinde.isAuthenticated();
-            if (isAuthenticated) {
-                document.getElementById("protected-content").style.display = "block";
-                document.getElementById("login-btn").style.display = "none";
-                document.getElementById("logout-btn").style.display = "inline";
-            }
+        function login() {
+            auth0Client.authorize();
         }
 
-        document.getElementById("login-btn").addEventListener("click", () => {
-            kinde.login();
-        });
+        function handleAuthentication() {
+            auth0Client.parseHash((err, authResult) => {
+                if (authResult && authResult.accessToken && authResult.idToken) {
+                    localStorage.setItem("access_token", authResult.accessToken);
+                    localStorage.setItem("id_token", authResult.idToken);
+                    getUserInfo(authResult.accessToken);
+                } else if (err) {
+                    console.error("Error during authentication:", err);
+                }
+            });
+        }
 
-        document.getElementById("logout-btn").addEventListener("click", () => {
-            kinde.logout();
-        });
+        function getUserInfo(token) {
+            auth0Client.client.userInfo(token, (err, user) => {
+                if (err) {
+                    console.error("Error getting user info:", err);
+                    return;
+                }
+                localStorage.setItem("user", JSON.stringify(user));
+                displayUser(user);
+            });
+        }
 
-        checkAuth();
+        function displayUser(user) {
+            document.getElementById("userName").innerText = user.name;
+            document.getElementById("userPicture").src = user.picture;
+            document.getElementById("profile").style.display = "block";
+            document.getElementById("logoutBtn").style.display = "inline";
+        }
+
+        function logout() {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("id_token");
+            localStorage.removeItem("user");
+            window.location.href = `https://${auth0Client.options.domain}/v2/logout?returnTo=YOUR_REDIRECT_URI`;
+        }
+
+        window.onload = function () {
+            handleAuthentication();
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+                displayUser(JSON.parse(storedUser));
+            }
+        };
     </script>
 
 </body>
