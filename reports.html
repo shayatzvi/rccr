@@ -37,7 +37,7 @@
             }
 
             // Get user roles (replace with your Auth0 namespace)
-            const userRoles = storedUser["https://yourdomain.com/roles"] || [];
+            const userRoles = storedUser["https://dev-jk6cbtdmjmw7ieys.us.auth0.com/roles"] || [];
 
             if (!userRoles.includes("admin")) { // Change "admin" to required role
                 alert("Access Denied: You do not have permission to view this page.");
