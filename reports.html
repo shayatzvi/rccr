@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Members Only</title>
+    <script src="https://cdn.auth0.com/js/auth0/9.19/auth0.min.js"></script>
+</head>
+<body>
+
+    <h1>Restricted Reports Page</h1>
+    <p>Only authorized users can view this page.</p>
+
+    <div id="user-info" style="display: none;">
+        <p><strong>Welcome,</strong> <span id="username"></span></p>
+        <p><strong>Your Role:</strong> <span id="user-role"></span></p>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        // Auth0 Credentials
+        const auth0Client = new auth0.WebAuth({
+            domain: "dev-jk6cbtdmjmw7ieys.us.auth0.com",
+            clientID: "evmhsNqsdWLquRyRBHJYYFozBgtD0fyg",
+            redirectUri: "https://rebchardle.org/reports.html",
+            responseType: "token id_token",
+            scope: "openid profile email"
+        });
+
+        function checkAccess() {
+            const storedUser = JSON.parse(localStorage.getItem("user"));
+            
+            if (!storedUser) {
+                // If no user is logged in, redirect to the login page
+                window.location.href = "members.html";
+                return;
+            }
+
+            // Get user roles (replace with your Auth0 namespace)
+            const userRoles = storedUser["https://yourdomain.com/roles"] || [];
+
+            if (!userRoles.includes("admin")) { // Change "admin" to required role
+                alert("Access Denied: You do not have permission to view this page.");
+                window.location.href = "members.html"; // Redirect to login page
+            } else {
+                // If the user has the right role, display their info
+                document.getElementById("user-info").style.display = "block";
+                document.getElementById("username").textContent = storedUser.name || storedUser.email;
+                document.getElementById("user-role").textContent = userRoles.join(", ");
+            }
+        }
+
+        function handleAuthentication() {
+            auth0Client.parseHash((err, authResult) => {
+                if (authResult && authResult.accessToken && authResult.idToken) {
+                    localStorage.setItem("access_token", authResult.accessToken);
+                    localStorage.setItem("id_token", authResult.idToken);
+
+                    // Fetch user info and store it
+                    auth0Client.client.userInfo(authResult.accessToken, (err, user) => {
+                        if (err) {
+                            console.error("Error getting user info:", err);
+                            return;
+                        }
+                        localStorage.setItem("user", JSON.stringify(user));
+                        checkAccess();
+                    });
+                } else if (err) {
+                    console.error("Error during authentication:", err);
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("id_token");
+            localStorage.removeItem("user");
+            window.location.href = "members.html"; // Redirect to login page
+        }
+
+        // Run authentication check
+        handleAuthentication();
+        checkAccess();
+    </script>
+
+</body>
+</html>
