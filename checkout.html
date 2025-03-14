@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Checkout</title>
+    <script>
+        async function deductWallet() {
+            const amount = document.getElementById("amount").value;
+            const userId = document.getElementById("user_id").value;
+
+            if (!amount || !userId) {
+                alert("Please enter both user ID and amount.");
+                return;
+            }
+
+            const apiUrl = "https://boopka.x10.mx/wp-json/wallet/v1/debit";
+            const apiKey = "91ebfbe677e836f35774fb8c8c58c292"; // Replace with your actual API key
+
+            const requestData = {
+                user_id: userId,
+                amount: parseFloat(amount),
+                description: "Wallet checkout payment"
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Payment successful! Wallet deducted.");
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (error) {
+                console.error("API Error:", error);
+                alert("An error occurred. Please try again.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>Wallet Checkout</h2>
+    <label for="user_id">User ID:</label>
+    <input type="text" id="user_id" placeholder="Enter your User ID" required>
+    <br>
+    <label for="amount">Amount to Deduct ($):</label>
+    <input type="number" id="amount" placeholder="Enter amount" required>
+    <br>
+    <button onclick="deductWallet()">Pay with Wallet</button>
+</body>
+</html>
