@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script>
+        const SHEETY_URL = "https://api.sheety.co/a1cbc1cc4cd0dd4c6b3dd931b395342f/testSystems/sheet1"; // Replace this
+    
+        async function login(event) {
+            event.preventDefault();
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+    
+            try {
+                let response = await fetch(SHEETY_URL);
+                let data = await response.json();
+                console.log("Fetched Data:", data); // Debugging step
+    
+                // Adjust this line based on your actual Sheety API response structure
+                let users = data.users || data.sheet1 || []; // Try different keys based on response
+    
+                let user = users.find(u => u.Username === username && u.Password === password);
+    
+                if (user) {
+                    localStorage.setItem("authUser", JSON.stringify(user));
+                    window.location.href = "krcka.html"; // Redirect to dashboard
+                } else {
+                    alert("Invalid username or password.");
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                alert("Login failed. Check console for details.");
+            }
+        }
+    </script>
+    
+</head>
+<body>
+    <h2>Login</h2>
+    <form onsubmit="login(event)">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
